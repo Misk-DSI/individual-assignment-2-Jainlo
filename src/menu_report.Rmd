@@ -37,11 +37,11 @@ file.exists("../data/menu.csv")
 menu <- read_csv("../data/menu.csv")
 ```
 
-The dataset menu is ... It shows ... In this report we're gonna check to see if ...
+The dataset menu is a collection of Calories, fat, and sugar for every cheeseburger, fries, and milkshake on the McDonald's menu. In this report we're gonna check the correlation between calories and other variables.
 
 ## Data
 
-Following is the key variables in our data
+Following are the key variables in our data
 ```{r include=FALSE, message=FALSE}
 # Show the structure of the dataset
 glimpse(menu)
@@ -79,8 +79,26 @@ reactable(menu_tidy)
 
 ## Explatory Data Analysis
 
-Key findings
-```{r}
-```
+Plotting a boxplot will help us catch any skewness and check the dispersion of the data. We can see that there aren't many outlers, but there exists a single extreme outlier in the Chicken & Fish category. 
 
+```{r}
+menu %>% 
+  ggplot(aes(x= calories, y= category)) +
+  geom_boxplot() 
+```
+After further investigation, we found that the item with the most calories is "Chicken McNuggets (40 piece)".
+```{r}
+#Lets try to find that max value
+Max_Calories_ChickenFish <- menu$item[[which.max(menu$calories)]]
+Max_Calories_ChickenFish
+```
+After checking sodium content and see if we can find any interesting insight. Once again we notice an extreme outlier in the data, which also turns out to be "Chicken McNuggets (40 piece)".
+```{r}
+menu %>% 
+  ggplot(aes(x= category, y= sodium)) +
+  geom_jitter()
+Max_Sodium_ChickenFish <- menu$item[[which.max(menu$sodium)]]
+Max_Sodium_ChickenFish
+```
 ## Conclusion
+

@@ -6,6 +6,10 @@ install.packages("janitor")
 install.packages("here")
 library(janitor)
 library(here)
+install.packages("reactable")
+library(reactable)
+install.packages("SmartEDA")
+library(SmartEDA)
 
 ### Set up
 # Get current working directory
@@ -51,6 +55,65 @@ menu_withou_serv %>%
   pivot_longer(!Item, names_to= "Nutritional_Facts", values_to= "Values") -> menu_tidy #data types
 dim(menu_tidy) # 5460 3
 glimpse(menu_tidy)
+reactable(menu_tidy)
 
 ### EDA (identifying patterns and relationships among variables)
+
+#check for correlation
+#boxplot for Calories vs Category to spot outliers and max calories category
+#filter(menu_tidy, Nutritional_Facts %in% "calories") -> dd
+#glimpse(dd)
+
+#Through a boxplot we can catch any skewness and check the dispersion of the data
+# We can see that there aren't many outliars, and there exists a single extreme outliar 
+#in the Chicken & Fish category
+menu %>% 
+  ggplot(aes(x= calories, y= category)) +
+  geom_boxplot() 
+#Lets try to find that max value
+Max_Calories_ChickenFish <- menu$item[[which.max((menu$calories))]]
+Max_Calories_ChickenFish
+
+#Whats the highest calory item in each category
+menu %>%
+  group_by(category)%>%
+  menu$item[[which.max(menu$calories)]] ##this doesnt work cause it gives 240 numbers vs 1 number, how should i fix it
+
+# Sodium is a food perservant, lets check sodium content and see if we can find any interesting insight
+# Once again we notice an extreme outlier in the data, which also turns out to be "Chicken McNuggets (40 piece)"
+menu %>% 
+  ggplot(aes(x= category, y= sodium)) +
+  geom_jitter()
+Max_Sodium_ChickenFish <- menu$item[[which.max(menu$sodium)]]
+Max_Sodium_ChickenFish
+
+#range of sodium content
+menu %>%
+  group_by(category)%>%
+  summarise(min = min(calories),
+            max = max(calories)) -> MinMaxCal
+
+reactable(MinMaxCal)
+MinMaxCal %>%
+  summarise(min = mean(min),
+            max = mean(max)) ->AvgMinMax
+AvgMinMax
+#Skewness
+
+# Are high levels of sodium correlated to something else?
+#menu %>%
+#  ggplot(aes)
+
+#Does ordering grilled chicken instead of crispy increase a sandwich's nutritional value?
+#menu %>% 
+#  group_by(item)
+#  ggplot(aes(x= "Sandwitch" %in% item, y= category)) +
+#  geom_boxplot() 
+#r <- str_extract(menu$item, "Sandwitch")
+#r
+#menu %>% 
+#  ggplot(aes(x= calories, y= category)) +
+#  geom_pointrange(aes(ymin =  mean(menu$calories) - sd(menu$calories),
+#                    ymax = mean(menu$calories) + sd(menu$calories))) +
+#  geom_boxplot() 
 
