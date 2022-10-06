@@ -1,0 +1,86 @@
+---
+title: "McDonald's Menu Report"
+author: "Lujain Alghamdi"
+date: "2022-10-06"
+output: html_document
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "../"
+    )
+  })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE, message=FALSE}
+# Set up
+# download all necessary libraries
+library(tidyr)
+library(dplyr)
+library(tidyverse)
+library(GGally)
+install.packages("janitor")
+install.packages("here")
+library(janitor)
+library(here)
+install.packages("reactable")
+library(reactable)
+# Get current working directory
+getwd()
+# Make sure the file we want to read from exists
+file.exists("../data/menu.csv")
+# Read the csv file and saved it in an object
+menu <- read_csv("../data/menu.csv")
+```
+
+The dataset menu is ... It shows ... In this report we're gonna check to see if ...
+
+## Data
+
+Following is the key variables in our data
+```{r include=FALSE, message=FALSE}
+# Show the structure of the dataset
+glimpse(menu)
+# Show the first 5 rows
+head(menu)
+# Check to see if there is any missing data
+summary(menu)
+# Since we have a lot of variables, This is a quick way to look at their names in a compact way
+names(menu)
+# Plot a subset of the data to see if there are any interesting relationships
+ggpairs(menu, columns=c("Calories", "Sugars", "Saturated Fat (% Daily Value)"))
+ggpairs(menu, columns=c("Calories","Cholesterol", "Total Fat (% Daily Value)"))
+# Clean the variable names
+menu %>%
+  clean_names() -> menu
+# Delete "serving size" cause it's not useful in our case
+menu_withou_serv = select(menu, -3)
+# Check names after deletion
+names(menu_withou_serv)
+# Gather the category and item variables together since they're not very distinct variables
+menu_withou_serv %>%
+  unite("Item",category, item, sep=" ") -> menu_withou_serv
+# Check dimentions before tidying up the data
+dim(menu_withou_serv)
+# Use pivot_longer to tidy up the data
+menu_withou_serv %>%
+  pivot_longer(!Item, names_to= "Nutritional_Facts", values_to= "Values") -> menu_tidy
+# Check dimentions after 
+dim(menu_tidy)
+```
+```{r}
+glimpse(menu_tidy)
+reactable(menu_tidy)
+```
+
+## Explatory Data Analysis
+
+Key findings
+```{r}
+```
+
+## Conclusion
