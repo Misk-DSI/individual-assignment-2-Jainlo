@@ -1,0 +1,104 @@
+---
+title: "McDonald's Menu Report"
+author: "Lujain Alghamdi"
+date: "2022-10-06"
+output: html_document
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_dir = "../"
+    )
+  })
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r include=FALSE, message=FALSE}
+# Set up
+# download all necessary libraries
+library(tidyr)
+library(dplyr)
+library(tidyverse)
+library(GGally)
+install.packages("janitor")
+install.packages("here")
+library(janitor)
+library(here)
+install.packages("reactable")
+library(reactable)
+# Get current working directory
+getwd()
+# Make sure the file we want to read from exists
+file.exists("../data/menu.csv")
+# Read the csv file and saved it in an object
+menu <- read_csv("../data/menu.csv")
+```
+
+The dataset menu is a collection of Calories, fat, and sugar for every cheeseburger, fries, and milkshake on the McDonald's menu. In this report we're gonna check the correlation between calories and other variables.
+
+## Data
+
+Following are the key variables in our data
+```{r include=FALSE, message=FALSE}
+# Show the structure of the dataset
+glimpse(menu)
+# Show the first 5 rows
+head(menu)
+# Check to see if there is any missing data
+summary(menu)
+# Since we have a lot of variables, This is a quick way to look at their names in a compact way
+names(menu)
+# Plot a subset of the data to see if there are any interesting relationships
+ggpairs(menu, columns=c("Calories", "Sugars", "Saturated Fat (% Daily Value)"))
+ggpairs(menu, columns=c("Calories","Cholesterol", "Total Fat (% Daily Value)"))
+# Clean the variable names
+menu %>%
+  clean_names() -> menu
+# Delete "serving size" cause it's not useful in our case
+menu_withou_serv = select(menu, -3)
+# Check names after deletion
+names(menu_withou_serv)
+# Gather the category and item variables together since they're not very distinct variables
+menu_withou_serv %>%
+  unite("Item",category, item, sep=" ") -> menu_withou_serv
+# Check dimentions before tidying up the data
+dim(menu_withou_serv)
+# Use pivot_longer to tidy up the data
+menu_withou_serv %>%
+  pivot_longer(!Item, names_to= "Nutritional_Facts", values_to= "Values") -> menu_tidy
+# Check dimentions after 
+dim(menu_tidy)
+```
+```{r}
+glimpse(menu_tidy)
+reactable(menu_tidy)
+```
+
+## Explatory Data Analysis
+
+Plotting a boxplot will help us catch any skewness and check the dispersion of the data. We can see that there aren't many outlers, but there exists a single extreme outlier in the Chicken & Fish category. 
+
+```{r}
+menu %>% 
+  ggplot(aes(x= calories, y= category)) +
+  geom_boxplot() 
+```
+After further investigation, we found that the item with the most calories is "Chicken McNuggets (40 piece)".
+```{r}
+#Lets try to find that max value
+Max_Calories_ChickenFish <- menu$item[[which.max(menu$calories)]]
+Max_Calories_ChickenFish
+```
+After checking sodium content and see if we can find any interesting insight. Once again we notice an extreme outlier in the data, which also turns out to be "Chicken McNuggets (40 piece)".
+```{r}
+menu %>% 
+  ggplot(aes(x= category, y= sodium)) +
+  geom_jitter()
+Max_Sodium_ChickenFish <- menu$item[[which.max(menu$sodium)]]
+Max_Sodium_ChickenFish
+```
+## Conclusion
+
